@@ -1,0 +1,13 @@
+.oferta{
+  font:400 17px/1.7 var(--sans);
+  header{background:var(--forest);padding:18px 20px}
+  header a{color:var(--gold);text-decoration:none;font:700 20px var(--serif)}
+  main{max-width:820px;margin:0 auto;padding:40px 20px 60px}
+  h1,h2{font-family:var(--serif);line-height:1.25;text-wrap:balance}
+  h1{font-size:34px;margin:0 0 8px}
+  h2{font-size:24px;margin:40px 0 10px;padding-top:10px;border-top:1px solid var(--line)}
+  p,li{margin:0 0 10px}
+  .muted{color:var(--muted)}
+  .fill{background:#fbecd0;color:#6b4a0c;padding:0 4px;border-radius:4px}
+  a{color:var(--gold-ink)}
+}

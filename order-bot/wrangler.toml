@@ -6,7 +6,7 @@ compatibility_date = "2026-10-01"
 # з яких адрес сайту приймати замовлення (через кому)
 ALLOWED_ORIGINS = "https://sadovyi-centr.sadovyi-centr-api.workers.dev"
 # посилання на кабінет — додається в повідомлення Telegram
-ADMIN_URL = "https://sadovyi-centr.sadovyi-centr-api.workers.dev/admin.html"
+ADMIN_URL = "https://sadovyi-centr.sadovyi-centr-api.workers.dev/admin"
 
 [[d1_databases]]
 binding = "DB"

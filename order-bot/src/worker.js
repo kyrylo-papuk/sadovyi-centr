@@ -309,7 +309,7 @@ export function formatOrder(o, adminUrl) {
     ...o.items.map(i => `• ${h(i.name)} — ${i.qty} шт × ${uah(i.price)} = ${uah(i.qty * i.price)}`),
     "",
     `<b>Разом: ${uah(o.total)}</b>`,
-    adminUrl ? `\n<a href="${h(adminUrl)}#order-${o.id}">Відкрити в кабінеті</a>` : null
+    adminUrl ? `\n<a href="${h(adminUrl)}/orders/${o.id}">Відкрити в кабінеті</a>` : null
   ].filter(x => x !== null).join("\n");
 }
 

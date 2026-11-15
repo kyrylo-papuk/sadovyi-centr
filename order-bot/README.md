@@ -3,21 +3,21 @@
 Что делает:
 - отдаёт сайту каталог растений из базы;
 - принимает заказы с сайта и сохраняет их в базу;
-- обслуживает кабинет хозяйки `site/admin.html`: заказы (список, детали, статусы, заметки) и растения (добавление, правка, фото, скрытие, удаление);
+- обслуживает кабинет хозяйки (`/admin` на сайте, код в `../web/src/admin`): заказы (список, детали, статусы, заметки) и растения (добавление, правка, фото, скрытие, удаление);
 - по желанию дублирует каждый новый заказ в Telegram.
 
 Всё помещается в бесплатный тариф Cloudflare (Workers + D1). Фото уменьшаются в браузере до 1400 px и хранятся в той же базе.
 
 ## Где сейчас работает
 
-- Сайт: https://sadovyi-centr.sadovyi-centr-api.workers.dev (Worker со статикой из `../site`, конфиг `site.wrangler.toml`)
-- Кабинет: https://sadovyi-centr.sadovyi-centr-api.workers.dev/admin.html
+- Сайт: https://sadovyi-centr.sadovyi-centr-api.workers.dev (React-проект `../web`, конфиг `site.wrangler.toml`)
+- Кабинет: https://sadovyi-centr.sadovyi-centr-api.workers.dev/admin
 - API: https://sadovyi-centr-api.sadovyi-centr-api.workers.dev (конфиг `wrangler.toml`, база D1 `sadovyi-centr`)
 
 Выложить изменения:
 ```
 npx wrangler deploy                          # API (src/worker.js)
-npx wrangler deploy -c site.wrangler.toml    # сайт (папка ../site; _test.html исключён через .assetsignore)
+npx wrangler deploy -c site.wrangler.toml    # сайт: сначала `npm run build` в ../web
 ```
 
 ## Запуск с нуля (если понадобится новый аккаунт)
@@ -34,8 +34,8 @@ npx wrangler secret put ADMIN_PASSWORD      # пароль хозяйки для
 npx wrangler deploy                         # выдаст адрес https://sadovyi-centr-api.<аккаунт>.workers.dev
 ```
 
-Потом в `site/shared.js` прописать этот адрес в `API_BASE` (без `/` в конце) и выложить сайт.
-Кабинет будет по адресу `https://kotoliji.github.io/sadovyi-centr/admin.html`.
+Потом прописать этот адрес в `API_URL` в `web/src/config.js` (без `/` в конце), добавить адрес сайта в `ALLOWED_ORIGINS` и выложить сайт.
+Кабинет будет по адресу `<адрес сайта>/admin`.
 
 ### Telegram (необязательно)
 

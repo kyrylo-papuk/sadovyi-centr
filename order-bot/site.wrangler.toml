@@ -1,6 +1,10 @@
-# Сам сайт (статичні файли з папки ../site). Викладка: npx wrangler deploy -c site.wrangler.toml
+# Сам сайт (React-проєкт із папки ../web). Викладка:
+#   cd ../web && npm run build
+#   cd ../order-bot && npx wrangler deploy -c site.wrangler.toml
 name = "sadovyi-centr"
 compatibility_date = "2026-10-01"
 
 [assets]
-directory = "../site"
+directory = "../web/dist"
+# усі адреси (/product/2, /admin/orders/5 …) обробляє React Router
+not_found_handling = "single-page-application"
