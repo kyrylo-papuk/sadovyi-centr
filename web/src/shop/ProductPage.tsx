@@ -1,9 +1,11 @@
 import { useState } from "react";
+import type { ReactNode } from "react";
 import { Link, useParams } from "react-router-dom";
-import { CONFIG, SITE_NAME, TEL_LINK, VIBER_LINK } from "../config.js";
-import { catName, imgUrl, money, salePct } from "../lib/format.js";
-import { useShop } from "./ShopContext.jsx";
-import ProductCard, { StockLabel } from "./ProductCard.jsx";
+import { CONFIG, SITE_NAME, TEL_LINK, VIBER_LINK } from "../config";
+import { catName, imgUrl, money, salePct } from "../lib/format";
+import type { Product } from "../types";
+import { useShop } from "./ShopContext";
+import ProductCard, { StockLabel } from "./ProductCard";
 
 const PERKS = [
   "Викопуємо саджанець під ваше замовлення",
@@ -18,7 +20,7 @@ const CheckIcon = () => (
   </svg>
 );
 
-function Message({ title, children }) {
+function Message({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="pv">
       <div className="wrap">
@@ -32,7 +34,7 @@ function Message({ title, children }) {
   );
 }
 
-function Product({ product: p }) {
+function ProductView({ product: p }: { product: Product }) {
   const { products, addToCart, setCategory, setCartOpen } = useShop();
   const [qty, setQty] = useState(1);
   const [addedQty, setAddedQty] = useState(0);
@@ -62,7 +64,7 @@ function Product({ product: p }) {
           <div className="pv-gallery">
             <div className="pv-main">
               {photos.length > 0 && <img src={photos[photo]} alt={p.name} width="600" height="600" />}
-              {p.old && <span className="tag-sale">Акція −{salePct(p)}%</span>}
+              {p.old !== null && <span className="tag-sale">Акція −{salePct(p.price, p.old)}%</span>}
             </div>
             {photos.length > 1 && (
               <div className="pv-thumbs">
@@ -79,9 +81,9 @@ function Product({ product: p }) {
             <p className="eyebrow">{catName(p.cat)}</p>
             <h1>{p.name}</h1>
             <p className="pv-lead">{p.note}</p>
-            <div className={"pv-price" + (p.old ? " is-sale" : "")}>
+            <div className={"pv-price" + (p.old !== null ? " is-sale" : "")}>
               <b>{money(p.price)}</b>
-              {p.old && <s>{money(p.old)}</s>}
+              {p.old !== null && <s>{money(p.old)}</s>}
               <small>Ціна за один {unit}</small>
             </div>
             <div className="pv-stock">
@@ -149,5 +151,5 @@ export default function ProductPage() {
   if (!product) return <Message title="Такої рослини немає"><p>Можливо, вона закінчилась. Подивіться інші саджанці в каталозі.</p></Message>;
 
   // key — щоб кількість і вибране фото скидались при переході на іншу рослину
-  return <Product key={product.id} product={product} />;
+  return <ProductView key={product.id} product={product} />;
 }

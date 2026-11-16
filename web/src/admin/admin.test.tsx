@@ -1,22 +1,27 @@
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { mockApi, renderApp } from "../test/helpers.jsx";
+import { mockApi, renderApp } from "../test/helpers";
+import type { MockHandler } from "../test/helpers";
+import type { AdminProduct, Order, OrderRow } from "../types";
 
-const ORDER = {
+const ORDER: Order = {
   id: 5, num: "СЦ-261115-005", created_at: new Date().toISOString(), status: "new",
   name: "Олена Коваленко", phone: "+380671234567", email: "olena@example.com",
   delivery_type: "У відділення", city: "Вінниця", np: "12", note: "Після 18:00", admin_note: "",
   items: [{ id: 1, name: "Троянда «Піано»", price: 120, qty: 3, img: "img/rose2.jpg" }], total: 360,
 };
-const ORDER_ROW = { id: 5, num: ORDER.num, created_at: ORDER.created_at, status: "new", name: ORDER.name, phone: ORDER.phone, city: "Вінниця", total: 360, count: 3 };
-const PLANT = { id: 1, cat: "roses", name: "Троянда «Піано»", note: "Червона", price: 120, old: null, stock: true, visible: true, images: ["img/rose2.jpg"], desc: ["Опис."], specs: [["Висота", "1 м"]], sort: 1 };
+const ORDER_ROW: OrderRow = { id: 5, num: ORDER.num, created_at: ORDER.created_at, status: "new", name: ORDER.name, phone: ORDER.phone, city: "Вінниця", total: 360, count: 3 };
+const PLANT: AdminProduct = { id: 1, cat: "roses", name: "Троянда «Піано»", note: "Червона", price: 120, old: null, stock: true, visible: true, images: ["img/rose2.jpg"], desc: ["Опис."], specs: [["Висота", "1 м"]], sort: 1 };
 
 // сервер, який пускає тільки з правильним токеном
-function adminApi(extra = {}) {
-  const guard = (fn) => (body, req) => (req.headers.Authorization === "Bearer good-token" ? fn(body) : [401, { ok: false, error: "unauthorized" }]);
+// тіло запиту в тестах — довільний JSON, тому any
+type Reply = (body: any) => object;
+
+function adminApi(extra: Record<string, Reply> = {}) {
+  const guard = (fn: Reply): MockHandler => (body, req) => (req.headers.Authorization === "Bearer good-token" ? fn(body) : [401, { ok: false, error: "unauthorized" }]);
   return mockApi({
-    "POST /admin/login": (b) => (b.password === "secret" ? { ok: true, token: "good-token" } : [401, { ok: false, error: "wrong_password" }]),
+    "POST /admin/login": (b: { password: string }) => (b.password === "secret" ? { ok: true, token: "good-token" } : [401, { ok: false, error: "wrong_password" }]),
     "GET /admin/orders": guard(() => ({ ok: true, orders: [ORDER_ROW], counts: { new: 1 } })),
     "GET /admin/orders/5": guard(() => ({ ok: true, order: ORDER })),
     "PATCH /admin/orders/5": guard((b) => ({ ok: true, order: { ...ORDER, ...b } })),
@@ -73,12 +78,12 @@ describe("замовлення", () => {
 
     await user.click(screen.getByRole("button", { name: "Підтверджене" }));
     await waitFor(() => expect(screen.getByRole("button", { name: "Підтверджене" })).toHaveAttribute("aria-pressed", "true"));
-    expect(apiMock.last("PATCH", "/admin/orders/5").body).toEqual({ status: "confirmed" });
+    expect(apiMock.last("PATCH", "/admin/orders/5")?.body).toEqual({ status: "confirmed" });
 
     await user.type(screen.getByPlaceholderText(/передзвонила/), "Аванс отримано");
     await user.click(screen.getByRole("button", { name: "Зберегти нотатку" }));
     expect(await screen.findByText("Нотатку збережено")).toBeInTheDocument();
-    expect(apiMock.last("PATCH", "/admin/orders/5").body).toEqual({ admin_note: "Аванс отримано" });
+    expect(apiMock.last("PATCH", "/admin/orders/5")?.body).toEqual({ admin_note: "Аванс отримано" });
   });
 });
 
@@ -97,7 +102,7 @@ describe("рослини", () => {
     await user.click(screen.getByRole("button", { name: "Зберегти" }));
 
     expect(await screen.findByText("Зміни збережено")).toBeInTheDocument();
-    expect(apiMock.last("PUT", "/admin/products/1").body).toMatchObject({
+    expect(apiMock.last("PUT", "/admin/products/1")?.body).toMatchObject({
       name: "Троянда «Піано»", cat: "roses", price: 135, old: null, stock: true, visible: true,
       images: ["img/rose2.jpg"], desc: ["Опис."], specs: [["Висота", "1 м"]],
     });
@@ -126,7 +131,7 @@ describe("рослини", () => {
     await user.click(screen.getByRole("button", { name: "Зберегти" }));
 
     expect(await screen.findByText("Рослину додано")).toBeInTheDocument();
-    expect(apiMock.last("POST", "/admin/products").body).toMatchObject({
+    expect(apiMock.last("POST", "/admin/products")?.body).toMatchObject({
       name: "Гортензія", cat: "decor", price: 250, old: null, stock: false, visible: true, images: [],
     });
   });

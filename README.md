@@ -53,24 +53,25 @@ flowchart LR
   A -.->|по желанию| T[Telegram-бот]
 ```
 
-- **Сайт** — React 19 + React Router, сборка Vite, тесты Vitest + Testing Library ([`web/`](web/)). Выложен на Cloudflare как Worker со статическими файлами.
-- **API** — один Cloudflare Worker ([`order-bot/src/worker.js`](order-bot/src/worker.js)): отдаёт каталог, принимает заказы, обслуживает кабинет.
+- **Сайт** — React 19 + TypeScript, React Router, сборка Vite, тесты Vitest + Testing Library ([`web/`](web/)). Выложен на Cloudflare как Worker со статическими файлами.
+- **API** — один Cloudflare Worker на TypeScript ([`order-bot/src/worker.ts`](order-bot/src/worker.ts)): отдаёт каталог, принимает заказы, обслуживает кабинет.
 - **База** — Cloudflare D1 (SQLite). Фото хранятся там же и отдаются с долгим кэшем.
 - **Стоимость**: 0 грн в месяц, всё помещается в бесплатный тариф Cloudflare. Платить придётся только за собственный домен, когда он появится.
 
 ## Структура репозитория
 
 ```
-web/                    сайт и кабинет (React + Vite)
+web/                    сайт и кабинет (React + TypeScript + Vite)
   src/shop/             магазин: главная, каталог, страница растения, корзина, оформление
   src/admin/            кабинет: вход, заказы, растения, редактор
   src/pages/            публичная оферта
   src/lib/              запросы к API, форматирование
-  src/config.js         контакты, условия заказа, категории, адрес API
+  src/config.ts         контакты, условия заказа, категории, адрес API
+  src/types.ts          типы данных
   src/styles/           стили
   public/img/           фото
 order-bot/              API (Cloudflare Worker + D1)
-  src/worker.js         все эндпоинты
+  src/worker.ts         все эндпоинты
   schema.sql            схема базы
   seed.sql              стартовый каталог (14 растений)
   wrangler.toml         конфиг API
@@ -88,13 +89,13 @@ cd web
 npm install
 npm run dev                                 # локально, http://localhost:5173
 npm test                                    # тесты
-npm run build                               # сборка в web/dist
+npm run build                               # проверка типов + сборка в web/dist
 
 # выкладка
 cd ../order-bot
 npm install
 npx wrangler login                          # один раз
-npx wrangler deploy                         # API
+npm run deploy                              # API: проверка типов + выкладка
 npx wrangler deploy -c site.wrangler.toml   # сайт (из web/dist)
 ```
 
@@ -105,8 +106,8 @@ npx wrangler deploy -c site.wrangler.toml   # сайт (из web/dist)
 | Что | Где |
 |---|---|
 | Растения, цены, фото, наличие | в кабинете, код трогать не нужно |
-| Телефон, Instagram, минимальная сумма, аванс | `CONFIG` в `web/src/config.js` |
-| Категории и их фото | `CATEGORIES` в `web/src/config.js` |
+| Телефон, Instagram, минимальная сумма, аванс | `CONFIG` в `web/src/config.ts` |
+| Категории и их фото | `CATEGORIES` в `web/src/config.ts` |
 | Пароль кабинета | `npx wrangler secret put ADMIN_PASSWORD` |
 | Уведомления о заказах в Telegram | секреты `BOT_TOKEN` и `CHAT_ID` (см. `order-bot/README.md`) |
 

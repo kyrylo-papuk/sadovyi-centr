@@ -1,7 +1,8 @@
 // Налаштування сайту: контакти, умови замовлення, категорії.
+import type { Category } from "./types";
 
 // Адреса API (Cloudflare Worker). Для локальної розробки задається у .env.local через VITE_API_URL.
-export const API_URL = (
+export const API_URL: string = (
   import.meta.env.VITE_API_URL || "https://sadovyi-centr-api.sadovyi-centr-api.workers.dev"
 ).replace(/\/+$/, "");
 
@@ -14,7 +15,7 @@ export const CONFIG = {
   minOrder: 300,
   prepay: 100,
   hours: "щодня з 9:00 до 20:00",
-};
+} as const;
 
 export const TEL_LINK = "tel:" + CONFIG.phoneRaw;
 export const VIBER_LINK = "viber://chat?number=" + encodeURIComponent(CONFIG.phoneRaw);
@@ -22,7 +23,7 @@ export const INSTAGRAM_LINK = "https://instagram.com/" + CONFIG.instagram;
 
 // Категорії. img — фото плитки; also — які ще категорії показувати разом із цією.
 // "all" і "sale" — службові (усі товари / товари зі старою ціною), рослину в них не додають.
-export const CATEGORIES = [
+export const CATEGORIES: Category[] = [
   { id: "all", name: "Усі саджанці", img: "/img/seedlings.jpg" },
   { id: "roses", name: "Троянди", img: "/img/rose1.jpg" },
   { id: "fruit", name: "Плодові", img: "/img/apple.jpg" },

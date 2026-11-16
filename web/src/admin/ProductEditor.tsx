@@ -1,19 +1,47 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { PLANT_CATEGORIES } from "../config.js";
-import { imgUrl } from "../lib/format.js";
-import { errText, useAdmin } from "./AdminContext.jsx";
-import Panel from "./Panel.jsx";
-import { shrinkImage } from "./shrinkImage.js";
+import { PLANT_CATEGORIES } from "../config";
+import { imgUrl } from "../lib/format";
+import type { AdminProduct, ImageResponse, ProductInput, Spec } from "../types";
+import { errText, useAdmin } from "./AdminContext";
+import Panel from "./Panel";
+import { shrinkImage } from "./shrinkImage";
 
 const MAX_PHOTOS = 10;
-const EMPTY = { name: "", cat: PLANT_CATEGORIES[0].id, note: "", price: "", old: "", stock: true, visible: true, images: [], desc: "", specs: [] };
+
+/** Поля форми: ціни й опис — рядками, як їх вводить людина */
+interface ProductForm {
+  name: string;
+  cat: string;
+  note: string;
+  price: string;
+  old: string;
+  stock: boolean;
+  visible: boolean;
+  images: string[];
+  desc: string;
+  specs: Spec[];
+}
+
+const EMPTY: ProductForm = {
+  name: "", cat: PLANT_CATEGORIES[0].id, note: "", price: "", old: "", stock: true, visible: true, images: [], desc: "", specs: [],
+};
 
 // рослина з API → поля форми
-const toForm = (p) => ({ ...p, price: String(p.price), old: p.old ? String(p.old) : "", desc: p.desc.join("\n") });
+const toForm = (p: AdminProduct): ProductForm => ({
+  name: p.name, cat: p.cat, note: p.note, price: String(p.price), old: p.old ? String(p.old) : "",
+  stock: p.stock, visible: p.visible, images: p.images, desc: p.desc.join("\n"), specs: p.specs,
+});
 
-function Photos({ images, uploading, onChange, onAdd }) {
-  const move = (from, to) => {
+interface PhotosProps {
+  images: string[];
+  uploading: number;
+  onChange: (images: string[]) => void;
+  onAdd: (files: File[]) => void;
+}
+
+function Photos({ images, uploading, onChange, onAdd }: PhotosProps) {
+  const move = (from: number, to: number) => {
     const next = [...images];
     next.splice(to, 0, ...next.splice(from, 1));
     onChange(next);
@@ -34,7 +62,7 @@ function Photos({ images, uploading, onChange, onAdd }) {
       {Array.from({ length: uploading }, (_, i) => <div className="ph loading" key={i}>Завантаження…</div>)}
       {images.length + uploading < MAX_PHOTOS && (
         <label className="add-photo">
-          <input type="file" accept="image/*" multiple aria-label="Додати фото" onChange={(e) => { onAdd([...e.target.files]); e.target.value = ""; }} />
+          <input type="file" accept="image/*" multiple aria-label="Додати фото" onChange={(e) => { onAdd([...(e.target.files ?? [])]); e.target.value = ""; }} />
           <span><b>+</b><br />Додати фото</span>
         </label>
       )}
@@ -42,8 +70,9 @@ function Photos({ images, uploading, onChange, onAdd }) {
   );
 }
 
-function Specs({ specs, onChange }) {
-  const set = (i, col, value) => onChange(specs.map((row, j) => (j === i ? row.map((v, c) => (c === col ? value : v)) : row)));
+function Specs({ specs, onChange }: { specs: Spec[]; onChange: (specs: Spec[]) => void }) {
+  const set = (i: number, col: 0 | 1, value: string) =>
+    onChange(specs.map((row, j): Spec => (j !== i ? row : col === 0 ? [value, row[1]] : [row[0], value])));
   return (
     <>
       <div className="specs">
@@ -68,7 +97,7 @@ export default function ProductEditor() {
   const { id } = useParams(); // немає id — нова рослина
   const navigate = useNavigate();
   const { call, toast, products, refreshProducts } = useAdmin();
-  const [form, setForm] = useState(id ? null : EMPTY);
+  const [form, setForm] = useState<ProductForm | null>(id ? null : EMPTY);
   const [notFound, setNotFound] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [uploading, setUploading] = useState(0);
@@ -78,21 +107,16 @@ export default function ProductEditor() {
   useEffect(() => {
     if (!id) return;
     let alive = true;
-    const find = (list) => list?.find((p) => p.id === Number(id));
-    const open = (p) => (p ? setForm(toForm(p)) : setNotFound(true));
+    const find = (list: AdminProduct[]) => list.find((p) => p.id === Number(id));
+    const open = (p: AdminProduct | undefined) => (p ? setForm(toForm(p)) : setNotFound(true));
     const known = find(products);
     if (known) open(known);
-    else refreshProducts().then((list) => alive && list && open(find(list)));
+    else refreshProducts().then((list) => { if (alive && list) open(find(list)); });
     return () => { alive = false; };
     // рослину завантажуємо один раз на відкриття — подальші оновлення списку не мають затирати правки
   }, [id]);
 
-  const change = (patch) => { setForm((f) => ({ ...f, ...patch })); setDirty(true); };
   const toList = () => navigate("/admin/products");
-  const back = () => {
-    if (dirty && !window.confirm("Зміни не збережено. Вийти без збереження?")) return;
-    toList();
-  };
 
   if (!form) {
     return (
@@ -102,14 +126,23 @@ export default function ProductEditor() {
     );
   }
 
-  const addPhotos = async (files) => {
+  const change = (patch: Partial<ProductForm>) => {
+    setForm((f) => (f ? { ...f, ...patch } : f));
+    setDirty(true);
+  };
+  const back = () => {
+    if (dirty && !window.confirm("Зміни не збережено. Вийти без збереження?")) return;
+    toList();
+  };
+
+  const addPhotos = async (files: File[]) => {
     const list = files.slice(0, MAX_PHOTOS - form.images.length);
     setUploading((n) => n + list.length);
     for (const file of list) {
       try {
         const blob = await shrinkImage(file);
-        const d = await call("/admin/images", { method: "POST", body: blob, headers: { "Content-Type": "image/jpeg" } });
-        setForm((f) => ({ ...f, images: [...f.images, d.src] }));
+        const d = await call<ImageResponse>("/admin/images", { method: "POST", body: blob, headers: { "Content-Type": "image/jpeg" } });
+        setForm((f) => (f ? { ...f, images: [...f.images, d.src] } : f));
         setDirty(true);
       } catch (e) {
         toast(`Фото «${file.name}»: ${errText(e)}`, true);
@@ -127,11 +160,11 @@ export default function ProductEditor() {
     if (uploading) return toast("Зачекайте, фото ще завантажується", true);
     if (!form.images.length && !window.confirm("У рослини немає фото. Зберегти без фото?")) return;
 
-    const data = {
+    const data: ProductInput = {
       name: form.name.trim(), cat: form.cat, note: form.note.trim(), price, old,
       stock: form.stock, visible: form.visible, images: form.images,
       desc: form.desc.split("\n").map((s) => s.trim()).filter(Boolean),
-      specs: form.specs.map(([k, v]) => [k.trim(), v.trim()]).filter(([k, v]) => k && v),
+      specs: form.specs.map(([k, v]): Spec => [k.trim(), v.trim()]).filter(([k, v]) => k && v),
     };
     setSaving(true);
     try {
@@ -210,7 +243,7 @@ export default function ProductEditor() {
       <section className="card">
         <h2>Опис</h2>
         <label className="field">Текст на сторінці рослини <small>Кожен абзац — з нового рядка</small>
-          <textarea rows="5" value={form.desc} onChange={(e) => change({ desc: e.target.value })} />
+          <textarea rows={5} value={form.desc} onChange={(e) => change({ desc: e.target.value })} />
         </label>
       </section>
 

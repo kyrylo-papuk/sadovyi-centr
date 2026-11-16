@@ -1,14 +1,15 @@
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { UserEvent } from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { PRODUCTS, mockApi, renderApp } from "../test/helpers.jsx";
+import { PRODUCTS, mockApi, renderApp } from "../test/helpers";
 
 const cartCount = () => screen.getByTestId("cart-count").textContent;
 const cards = () => screen.queryAllByRole("article");
 
-async function fillForm(user, phone = "067 123 45 67") {
+async function fillForm(user: UserEvent, phone = "067 123 45 67") {
   const dialog = screen.getByRole("dialog", { name: "Оформлення замовлення" });
-  const field = (name) => dialog.querySelector(`[name="${name}"]`);
+  const field = (name: string) => dialog.querySelector<HTMLInputElement>(`[name="${name}"]`)!;
   await user.type(field("first"), "Олена");
   await user.type(field("last"), "Коваленко");
   await user.type(field("phone"), phone);
@@ -81,7 +82,7 @@ describe("кошик і замовлення", () => {
     renderApp("/");
     await screen.findByText("Троянда «Піано»");
 
-    await user.click(within(cards()[0]).getByRole("button", { name: "У кошик" }));
+    await user.click(within(cards()[0]!).getByRole("button", { name: "У кошик" }));
     expect(cartCount()).toBe("1");
 
     await user.click(screen.getByRole("button", { name: "Відкрити кошик" }));
@@ -127,7 +128,7 @@ describe("кошик і замовлення", () => {
     expect(screen.getByText("СЦ-261115-007")).toBeInTheDocument();
     expect(cartCount()).toBe("0");
 
-    const sent = apiMock.last("POST", "/order").body;
+    const sent = apiMock.last("POST", "/order")?.body;
     expect(sent).toMatchObject({
       name: "Олена Коваленко",
       phone: "+380671234567",
@@ -153,7 +154,7 @@ describe("кошик і замовлення", () => {
     const dialog = await fillForm(user, "12345");
     await user.click(within(dialog).getByRole("button", { name: "Надіслати замовлення" }));
 
-    expect(dialog.querySelector('[name="phone"]').validationMessage).toMatch(/Вкажіть номер/);
+    expect(dialog.querySelector<HTMLInputElement>('[name="phone"]')?.validationMessage).toMatch(/Вкажіть номер/);
     expect(apiMock.last("POST", "/order")).toBeUndefined();
   });
 

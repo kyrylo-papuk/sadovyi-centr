@@ -1,19 +1,19 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { CONFIG } from "../config.js";
-import { imgUrl, money } from "../lib/format.js";
-import { useShop } from "./ShopContext.jsx";
+import { CONFIG } from "../config";
+import { imgUrl, money } from "../lib/format";
+import { useShop } from "./ShopContext";
 
 // Кошик: висувна панель праворуч
 export default function CartDrawer() {
   const { items, total, setQty, setCartOpen, setCheckoutOpen } = useShop();
   const navigate = useNavigate();
-  const closeRef = useRef(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
   const close = () => setCartOpen(false);
 
   useEffect(() => {
     closeRef.current?.focus();
-    const onKey = (e) => { if (e.key === "Escape") setCartOpen(false); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setCartOpen(false); };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [setCartOpen]);

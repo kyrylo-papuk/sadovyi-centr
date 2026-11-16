@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { API_URL } from "../config.js";
-import { imgUrl, inCategory, money, normalizePhone, salePct } from "./format.js";
+import { API_URL } from "../config";
+import { imgUrl, inCategory, money, normalizePhone, salePct } from "./format";
 
 describe("inCategory", () => {
   const rose = { cat: "roses", old: null };
@@ -49,7 +49,7 @@ describe("imgUrl", () => {
 });
 
 it("salePct рахує відсоток знижки", () => {
-  expect(salePct({ price: 110, old: 125 })).toBe(12);
+  expect(salePct(110, 125)).toBe(12);
 });
 
 it("money додає «грн»", () => {

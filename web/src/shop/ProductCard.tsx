@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { catName, imgUrl, money, salePct } from "../lib/format.js";
-import { useShop } from "./ShopContext.jsx";
+import { catName, imgUrl, money, salePct } from "../lib/format";
+import type { Product } from "../types";
+import { useShop } from "./ShopContext";
 
-export function StockLabel({ inStock }) {
+export function StockLabel({ inStock }: { inStock: boolean }) {
   return (
     <span className={"stock " + (inStock ? "in" : "pre")}>
       {inStock ? "Є в наявності" : "Передзамовлення на весну"}
@@ -12,7 +13,7 @@ export function StockLabel({ inStock }) {
 }
 
 // Картка рослини в каталозі та в блоці «Схожі саджанці»
-export default function ProductCard({ product: p }) {
+export default function ProductCard({ product: p }: { product: Product }) {
   const { addToCart } = useShop();
   const [added, setAdded] = useState(false);
 
@@ -29,7 +30,7 @@ export default function ProductCard({ product: p }) {
         <Link to={link} tabIndex={-1} aria-hidden="true">
           <img src={imgUrl(p.images[0])} alt="" loading="lazy" width="600" height="600" />
         </Link>
-        {p.old && <span className="tag-sale">−{salePct(p)}%</span>}
+        {p.old !== null && <span className="tag-sale">−{salePct(p.price, p.old)}%</span>}
       </div>
       <div className="card-body">
         <span className="card-cat">{catName(p.cat)}</span>
@@ -37,8 +38,8 @@ export default function ProductCard({ product: p }) {
         <p className="card-note">{p.note}</p>
         <StockLabel inStock={p.stock} />
         <div className="card-foot">
-          <div className={"price" + (p.old ? " is-sale" : "")}>
-            {p.old && <s>{money(p.old)}</s>}
+          <div className={"price" + (p.old !== null ? " is-sale" : "")}>
+            {p.old !== null && <s>{money(p.old)}</s>}
             {money(p.price)}
           </div>
           <button

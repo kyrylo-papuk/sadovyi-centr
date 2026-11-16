@@ -1,15 +1,16 @@
 import { Navigate } from "react-router-dom";
-import ShopLayout from "./shop/ShopLayout.jsx";
-import HomePage from "./shop/HomePage.jsx";
-import ProductPage from "./shop/ProductPage.jsx";
-import OfertaPage from "./pages/OfertaPage.jsx";
-import AdminLayout from "./admin/AdminLayout.jsx";
-import OrdersPage from "./admin/OrdersPage.jsx";
-import OrderPage from "./admin/OrderPage.jsx";
-import ProductsPage from "./admin/ProductsPage.jsx";
-import ProductEditor from "./admin/ProductEditor.jsx";
+import type { RouteObject } from "react-router-dom";
+import ShopLayout from "./shop/ShopLayout";
+import HomePage from "./shop/HomePage";
+import ProductPage from "./shop/ProductPage";
+import OfertaPage from "./pages/OfertaPage";
+import AdminLayout from "./admin/AdminLayout";
+import OrdersPage from "./admin/OrdersPage";
+import OrderPage from "./admin/OrderPage";
+import ProductsPage from "./admin/ProductsPage";
+import ProductEditor from "./admin/ProductEditor";
 
-export const routes = [
+export const routes: RouteObject[] = [
   {
     path: "/",
     element: <ShopLayout />,

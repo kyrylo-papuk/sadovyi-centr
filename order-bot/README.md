@@ -16,7 +16,7 @@
 
 Выложить изменения:
 ```
-npx wrangler deploy                          # API (src/worker.js)
+npm run deploy                               # API (src/worker.ts): проверка типов + выкладка
 npx wrangler deploy -c site.wrangler.toml    # сайт: сначала `npm run build` в ../web
 ```
 
@@ -34,7 +34,7 @@ npx wrangler secret put ADMIN_PASSWORD      # пароль хозяйки для
 npx wrangler deploy                         # выдаст адрес https://sadovyi-centr-api.<аккаунт>.workers.dev
 ```
 
-Потом прописать этот адрес в `API_URL` в `web/src/config.js` (без `/` в конце), добавить адрес сайта в `ALLOWED_ORIGINS` и выложить сайт.
+Потом прописать этот адрес в `API_URL` в `web/src/config.ts` (без `/` в конце), добавить адрес сайта в `ALLOWED_ORIGINS` и выложить сайт.
 Кабинет будет по адресу `<адрес сайта>/admin`.
 
 ### Telegram (необязательно)

@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link, Outlet, ScrollRestoration } from "react-router-dom";
 import "../styles/shop.css";
-import { CONFIG, SITE_NAME, TEL_LINK, VIBER_LINK } from "../config.js";
-import { ShopProvider, useShop } from "./ShopContext.jsx";
-import CartDrawer from "./CartDrawer.jsx";
-import Checkout from "./Checkout.jsx";
+import { CONFIG, SITE_NAME, TEL_LINK, VIBER_LINK } from "../config";
+import { ShopProvider, useShop } from "./ShopContext";
+import CartDrawer from "./CartDrawer";
+import Checkout from "./Checkout";
 
 const NAV = [
   ["/#catalog", "Каталог"],

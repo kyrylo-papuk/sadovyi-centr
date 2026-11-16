@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { catName, imgUrl, money } from "../lib/format.js";
-import { useAdmin } from "./AdminContext.jsx";
+import { catName, imgUrl, money } from "../lib/format";
+import { useAdmin } from "./AdminContext";
 
 // Список рослин із пошуком
 export default function ProductsPage() {

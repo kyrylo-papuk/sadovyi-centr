@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
+import type { FormEvent } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import "../styles/admin.css";
-import { SITE_NAME } from "../config.js";
-import { AdminProvider, errText, useAdmin } from "./AdminContext.jsx";
+import { SITE_NAME } from "../config";
+import { AdminProvider, errText, useAdmin } from "./AdminContext";
 
 const POLL_MS = 45000; // як часто перевіряти нові замовлення
 
@@ -12,7 +13,7 @@ function Login() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
-  const submit = async (e) => {
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
     setBusy(true);
     setError("");

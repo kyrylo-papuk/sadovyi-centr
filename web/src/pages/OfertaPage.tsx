@@ -1,6 +1,6 @@
 import { Link, ScrollRestoration } from "react-router-dom";
 import "../styles/oferta.css";
-import { SITE_NAME } from "../config.js";
+import { SITE_NAME } from "../config";
 
 // Публічна оферта. Жовтим виділено місця, які власниця має заповнити своїми даними.
 export default function OfertaPage() {

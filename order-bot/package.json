@@ -4,9 +4,12 @@
   "type": "module",
   "scripts": {
     "dev": "wrangler dev --local --port 8787",
-    "deploy": "wrangler deploy"
+    "typecheck": "tsc",
+    "deploy": "tsc && wrangler deploy"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261116.1",
+    "typescript": "^7.0.2",
     "wrangler": "4.151.3"
   }
 }

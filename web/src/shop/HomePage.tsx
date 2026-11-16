@@ -1,9 +1,9 @@
 import { Link } from "react-router-dom";
-import { CONFIG, INSTAGRAM_LINK, SITE_NAME, TEL_LINK, VIBER_LINK } from "../config.js";
-import { useShop } from "./ShopContext.jsx";
-import Catalog from "./Catalog.jsx";
+import { CONFIG, INSTAGRAM_LINK, SITE_NAME, TEL_LINK, VIBER_LINK } from "../config";
+import { useShop } from "./ShopContext";
+import Catalog from "./Catalog";
 
-const icon = { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "1.8", strokeLinecap: "round", strokeLinejoin: "round" };
+const icon = { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "1.8", strokeLinecap: "round", strokeLinejoin: "round" } as const;
 
 const FAQ = [
   ["Саджанець приживеться, якщо я новачок?", "Так. До кожної посилки кладемо коротку пам’ятку з посадки. А якщо щось незрозуміло — просто зателефонуйте, ми підкажемо."],

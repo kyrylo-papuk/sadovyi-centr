@@ -1,14 +1,16 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { money, when } from "../lib/format.js";
-import { STATUS, STATUS_FILTER, useAdmin } from "./AdminContext.jsx";
+import { money, when } from "../lib/format";
+import type { OrderStatus } from "../types";
+import { STATUS, STATUSES, STATUS_FILTER, useAdmin } from "./AdminContext";
 
 // Список замовлень із фільтром за статусом
 export default function OrdersPage() {
   const { orders, refreshOrders, toast } = useAdmin();
-  const [filter, setFilter] = useState("all");
+  const [filter, setFilter] = useState<OrderStatus | "all">("all");
 
-  const counts = orders.reduce((a, o) => ({ ...a, [o.status]: (a[o.status] || 0) + 1 }), {});
+  const counts: Partial<Record<OrderStatus, number>> = {};
+  for (const o of orders) counts[o.status] = (counts[o.status] || 0) + 1;
   const list = filter === "all" ? orders : orders.filter((o) => o.status === filter);
 
   return (
@@ -19,7 +21,7 @@ export default function OrdersPage() {
       </div>
       <div className="chips" role="group" aria-label="Фільтр за статусом">
         <button className="chip" aria-pressed={filter === "all"} onClick={() => setFilter("all")}>Усі<span>{orders.length}</span></button>
-        {Object.keys(STATUS).map((k) => (
+        {STATUSES.map((k) => (
           <button key={k} className="chip" aria-pressed={filter === k} onClick={() => setFilter(k)}>
             {STATUS_FILTER[k]}<span>{counts[k] || 0}</span>
           </button>

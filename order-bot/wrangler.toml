@@ -1,5 +1,5 @@
 name = "sadovyi-centr-api"
-main = "src/worker.js"
+main = "src/worker.ts"
 compatibility_date = "2026-10-01"
 
 [vars]

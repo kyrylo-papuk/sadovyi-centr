@@ -1,17 +1,23 @@
 import { useEffect, useRef, useState } from "react";
-import { CONFIG, SITE_NAME, TEL_LINK, VIBER_LINK } from "../config.js";
-import { api } from "../lib/api.js";
-import { money, normalizePhone } from "../lib/format.js";
-import { useShop } from "./ShopContext.jsx";
+import type { FormEvent } from "react";
+import { CONFIG, SITE_NAME, TEL_LINK, VIBER_LINK } from "../config";
+import { api } from "../lib/api";
+import { money, normalizePhone } from "../lib/format";
+import type { NewOrder, OrderCreatedResponse } from "../types";
+import { useShop } from "./ShopContext";
 
 // спосіб доставки → підказка для поля адреси
 const PLACES = {
   "У відділення": "Номер відділення Нової Пошти",
   "У поштомат": "Номер поштомату Нової Пошти",
   "Кур'єром на адресу": "Вулиця, будинок, квартира",
-};
+} as const;
+type Place = keyof typeof PLACES;
+const PLACE_NAMES = Object.keys(PLACES) as Place[];
 
-function orderText(o) {
+type Stage = "form" | "sent" | "failed";
+
+function orderText(o: NewOrder): string {
   return (
     `Замовлення з сайту «${SITE_NAME}»\n\n` +
     o.items.map((i) => `• ${i.name} — ${i.qty} шт × ${i.price} = ${money(i.price * i.qty)}`).join("\n") +
@@ -21,7 +27,7 @@ function orderText(o) {
   );
 }
 
-function CallCard({ title }) {
+function CallCard({ title }: { title: string }) {
   return (
     <div className="call-card">
       <span>{title}</span>
@@ -35,7 +41,7 @@ function CallCard({ title }) {
   );
 }
 
-function CopyButton({ text }) {
+function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
   const copy = async () => {
     try {
@@ -53,16 +59,16 @@ function CopyButton({ text }) {
   );
 }
 
-function OrderForm({ onSubmit, sending }) {
+function OrderForm({ onSubmit, sending }: { onSubmit: (order: NewOrder) => void; sending: boolean }) {
   const { items, total } = useShop();
-  const [place, setPlace] = useState(Object.keys(PLACES)[0]);
-  const firstRef = useRef(null);
+  const [place, setPlace] = useState<Place>(PLACE_NAMES[0]);
+  const firstRef = useRef<HTMLInputElement>(null);
   useEffect(() => { firstRef.current?.focus(); }, []);
 
-  const submit = (e) => {
+  const submit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.currentTarget;
-    const phoneInput = form.elements.phone;
+    const phoneInput = form.elements.namedItem("phone") as HTMLInputElement;
     const phone = normalizePhone(phoneInput.value);
     if (!phone) {
       phoneInput.setCustomValidity("Вкажіть номер у форматі 067 123 45 67 або +380 67 123 45 67");
@@ -70,7 +76,7 @@ function OrderForm({ onSubmit, sending }) {
       return;
     }
     const data = new FormData(form);
-    const get = (k) => String(data.get(k) || "").trim();
+    const get = (k: string) => String(data.get(k) || "").trim();
     onSubmit({
       first: get("first"),
       name: `${get("first")} ${get("last")}`.trim(),
@@ -98,8 +104,8 @@ function OrderForm({ onSubmit, sending }) {
         <label>E-mail адреса <i>*</i><input name="email" type="email" required autoComplete="email" /></label>
 
         <h2>Вкажіть адресу доставки</h2>
-        <select name="type" aria-label="Спосіб доставки" value={place} onChange={(e) => setPlace(e.target.value)}>
-          {Object.keys(PLACES).map((k) => <option key={k}>{k}</option>)}
+        <select name="type" aria-label="Спосіб доставки" value={place} onChange={(e) => setPlace(e.target.value as Place)}>
+          {PLACE_NAMES.map((k) => <option key={k}>{k}</option>)}
         </select>
         <input name="city" required placeholder="Населений пункт" aria-label="Населений пункт" autoComplete="address-level2" />
         <input name="np" required placeholder={PLACES[place]} aria-label={PLACES[place]} />
@@ -107,7 +113,7 @@ function OrderForm({ onSubmit, sending }) {
         <h2>Додаткова інформація</h2>
         <input className="hp" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" />
         <label>Нотатки до замовлення (необов'язково)
-          <textarea name="note" rows="4" placeholder="Нотатки до вашого замовлення, наприклад спеціальні нотатки для доставки." />
+          <textarea name="note" rows={4} placeholder="Нотатки до вашого замовлення, наприклад спеціальні нотатки для доставки." />
         </label>
       </div>
 
@@ -138,7 +144,7 @@ function OrderForm({ onSubmit, sending }) {
   );
 }
 
-function Sent({ order, onDone }) {
+function Sent({ order, onDone }: { order: NewOrder; onDone: () => void }) {
   return (
     <div className="done co-done">
       <div className="step-num">✓</div>
@@ -159,7 +165,7 @@ function Sent({ order, onDone }) {
   );
 }
 
-function Failed({ order, onRetry, sending }) {
+function Failed({ order, onRetry, sending }: { order: NewOrder; onRetry: () => void; sending: boolean }) {
   return (
     <div className="done co-done">
       <div className="step-num is-warn">!</div>
@@ -177,16 +183,16 @@ function Failed({ order, onRetry, sending }) {
 // Оформлення замовлення: форма → «надіслано» або «не вдалося»
 export default function Checkout() {
   const { clearCart, setCartOpen, setCheckoutOpen } = useShop();
-  const [stage, setStage] = useState("form"); // form | sent | failed
-  const [order, setOrder] = useState(null);
+  const [stage, setStage] = useState<Stage>("form");
+  const [order, setOrder] = useState<NewOrder | null>(null);
   const [sending, setSending] = useState(false);
-  const boxRef = useRef(null);
+  const boxRef = useRef<HTMLDivElement>(null);
 
-  const send = async (data) => {
+  const send = async (data: NewOrder) => {
     setSending(true);
     setOrder(data);
     try {
-      const res = await api("/order", { method: "POST", json: data });
+      const res = await api<OrderCreatedResponse>("/order", { method: "POST", json: data });
       setOrder({ ...data, num: res.num, total: res.total ?? data.total });
       clearCart();
       setStage("sent");
@@ -195,7 +201,7 @@ export default function Checkout() {
       setStage("failed");
     } finally {
       setSending(false);
-      boxRef.current?.scrollTo?.(0, 0);
+      boxRef.current?.scrollTo(0, 0);
     }
   };
 
@@ -207,7 +213,7 @@ export default function Checkout() {
   };
 
   useEffect(() => {
-    const onKey = (e) => { if (e.key === "Escape") back(); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") back(); };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   });
@@ -222,8 +228,8 @@ export default function Checkout() {
       </div>
       <div className="wrap co-body">
         {stage === "form" && <OrderForm onSubmit={send} sending={sending} />}
-        {stage === "sent" && <Sent order={order} onDone={close} />}
-        {stage === "failed" && <Failed order={order} onRetry={() => send(order)} sending={sending} />}
+        {stage === "sent" && order && <Sent order={order} onDone={close} />}
+        {stage === "failed" && order && <Failed order={order} onRetry={() => send(order)} sending={sending} />}
       </div>
     </div>
   );

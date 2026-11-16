@@ -1,7 +1,7 @@
-import { CATEGORIES, CONFIG, TEL_LINK } from "../config.js";
-import { inCategory } from "../lib/format.js";
-import { useShop } from "./ShopContext.jsx";
-import ProductCard from "./ProductCard.jsx";
+import { CATEGORIES, CONFIG, TEL_LINK } from "../config";
+import { inCategory } from "../lib/format";
+import { useShop } from "./ShopContext";
+import ProductCard from "./ProductCard";
 
 function CategoryTiles() {
   const { category, setCategory } = useShop();

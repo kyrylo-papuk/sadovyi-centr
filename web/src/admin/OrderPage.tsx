@@ -1,21 +1,23 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { imgUrl, money, when } from "../lib/format.js";
-import { STATUS, errText, useAdmin } from "./AdminContext.jsx";
-import Panel from "./Panel.jsx";
+import { errorCode } from "../lib/api";
+import { imgUrl, money, when } from "../lib/format";
+import type { Order, OrderItem, OrderResponse, OrderStatus } from "../types";
+import { STATUS, STATUSES, errText, useAdmin } from "./AdminContext";
+import Panel from "./Panel";
 
 // Картка замовлення: клієнт, доставка, товари з фото, статус, нотатка
 export default function OrderPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { call, toast, refreshOrders, products, refreshProducts } = useAdmin();
-  const [order, setOrder] = useState(null);
+  const [order, setOrder] = useState<Order | null>(null);
   const [error, setError] = useState("");
   const [note, setNote] = useState("");
 
   useEffect(() => {
     let alive = true;
-    call("/admin/orders/" + id)
+    call<OrderResponse>("/admin/orders/" + id)
       .then((d) => {
         if (!alive) return;
         setOrder(d.order);
@@ -23,7 +25,9 @@ export default function OrderPage() {
         // у старих замовленнях фото не збережене — беремо з каталогу
         if (d.order.items.some((i) => !i.img)) refreshProducts();
       })
-      .catch((e) => alive && setError(e.code === "not_found" ? "Замовлення не знайдено." : errText(e)));
+      .catch((e: unknown) => {
+        if (alive) setError(errorCode(e) === "not_found" ? "Замовлення не знайдено." : errText(e));
+      });
     return () => { alive = false; };
   }, [id, call, refreshProducts]);
 
@@ -37,12 +41,12 @@ export default function OrderPage() {
     );
   }
 
-  const itemImg = (i) => i.img || (products.find((p) => p.id === i.id)?.images || [])[0] || "";
+  const itemImg = (i: OrderItem): string => i.img || products.find((p) => p.id === i.id)?.images[0] || "";
   const tel = order.phone.replace(/[^\d+]/g, "");
 
-  const setStatus = async (status) => {
+  const setStatus = async (status: OrderStatus) => {
     try {
-      const d = await call("/admin/orders/" + id, { method: "PATCH", json: { status } });
+      const d = await call<OrderResponse>("/admin/orders/" + id, { method: "PATCH", json: { status } });
       setOrder(d.order);
       toast("Статус: " + STATUS[status]);
       refreshOrders(true);
@@ -105,12 +109,12 @@ export default function OrderPage() {
       <section className="card">
         <h2>Статус</h2>
         <div className="statuses" role="group" aria-label="Статус замовлення">
-          {Object.entries(STATUS).map(([k, label]) => (
-            <button key={k} type="button" className={"st-" + k} aria-pressed={order.status === k} onClick={() => setStatus(k)}>{label}</button>
+          {STATUSES.map((k) => (
+            <button key={k} type="button" className={"st-" + k} aria-pressed={order.status === k} onClick={() => setStatus(k)}>{STATUS[k]}</button>
           ))}
         </div>
         <label className="field" style={{ marginTop: 6 }}>Нотатка для себе <small>Бачите лише ви</small>
-          <textarea rows="3" placeholder="Напр.: передзвонила, аванс отримано, ТТН 2045…" value={note} onChange={(e) => setNote(e.target.value)} />
+          <textarea rows={3} placeholder="Напр.: передзвонила, аванс отримано, ТТН 2045…" value={note} onChange={(e) => setNote(e.target.value)} />
         </label>
         <button className="btn btn-main" type="button" onClick={saveNote}>Зберегти нотатку</button>
       </section>
